@@ -6,8 +6,7 @@ from langgraph.types import Command
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, TypedDict, Literal
 
-from src.agent import prompt, utils as agent_utils
-from src.agent import tool
+from src.agent import prompt,  tool as agent_tool, utils as agent_utils
 from src.tools.startup import settings
 
 if settings.get("MODEL_NAME") == agent_utils.ModelName.openai.value:
@@ -89,10 +88,13 @@ def router_node(state: GraphState) -> Literal["researcher", "reasoner"]:
     # Create a validation model for the router's output
     router = create_router(options=[
         agent_utils.AgentName.reasoner.name,
-        agent_utils.AgentName.researcher.name
+        agent_utils.AgentName.researcher.name,
+        agent_utils.AgentName.data_analyst.name,
     ])
     router_agent = create_react_agent(
-        model=agent_utils.get_model(model_name=_model_name),
+        model=agent_utils.get_model(
+            model_name=_model_name,
+            temperature=settings["TEMPERATURE"]),
         tools=[],
         prompt=prompt.ROUTER,
         name=agent_utils.AgentName.router.name,
@@ -144,7 +146,9 @@ def reasoner_node(state: GraphState) -> Literal["generator"]:
             reasoning results.
     """
     reasoner_agent = create_react_agent(
-        model=agent_utils.get_model(model_name=_model_name),
+        model=agent_utils.get_model(
+            model_name=_model_name,
+            temperature=settings["TEMPERATURE"]),
         tools=[],
         prompt=prompt.REASONING.format(
             question=state["question"],
@@ -191,6 +195,77 @@ def reasoner_node(state: GraphState) -> Literal["generator"]:
     )
 
 
+def data_analyst_node(state: GraphState) -> Literal["generator"]:
+    """
+    Performs data analysis on provided information using Python execution
+    capabilities.
+
+    This node represents a specialized agent that can run Python code to
+    analyze data within the multi-agent system. It uses the PythonReplTool to
+    execute code and analyze data relevant to the user's query. After
+    performing analysis, it passes control to the generator agent which can
+    incorporate the analytical findings into the final response.
+
+    Args:
+        state (GraphState): The current state of the agent graph.
+
+    Returns:
+        Command: A directive to proceed to the generator node with the results
+            of the data analysis.
+
+    Note:
+        The agent uses the PythonReplTool which executes Python code in a
+        sandboxed environment. This enables data manipulation, calculation,
+        and visualization capabilities.
+
+    ** Take care with the security, the agent can execute any generated code **
+    """
+    data_analyst_agent = create_react_agent(
+        model=agent_utils.get_model(
+            model_name=_model_name,
+            temperature=settings["TEMPERATURE"]),
+        tools=[agent_tool.PythonReplTool()],
+        prompt=prompt.DATA_ANALYST.format(
+            question=state["question"],
+            history_messages=state["history_messages"]),
+        name=agent_utils.AgentName.reasoner.name
+    )
+
+    # Prepare the human message
+    human_message = {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": state["next_input"]},
+        ]
+    }
+
+    # Add the human message to the conversation
+    state["messages"].append(human_message)
+
+    response = data_analyst_agent.invoke(state)
+    last_message = agent_utils.get_last_message(response)
+
+    # Update conversation history with data analyst's contribution
+    history_messages = agent_utils.get_updated_history_messages(
+        last_message, state["history_messages"],
+        agent_utils.AgentName.data_analyst.name)
+
+    return Command(
+        goto=agent_utils.AgentName.generator.name,
+        update={
+            "messages": [
+                AIMessage(
+                    content=last_message,
+                    name=agent_utils.AgentName.data_analyst.name,
+                )
+            ],
+            "history_messages": history_messages,
+            "next_agent": agent_utils.AgentName.generator.name,
+            "next_input": last_message
+        }
+    )
+
+
 def researcher_node(state: GraphState) -> Literal["reasoner"]:
     """
     Gathers information from external sources to answer the query.
@@ -207,11 +282,13 @@ def researcher_node(state: GraphState) -> Literal["reasoner"]:
             research results.
     """
     research_agent = create_react_agent(
-        model=agent_utils.get_model(model_name=_model_name),
+        model=agent_utils.get_model(
+            model_name=_model_name,
+            temperature=settings["TEMPERATURE"]),
         tools=[
-            tool.WikipediaTool(),
-            tool.ArxivTool(),
-            tool.TavilySearchTool()
+            agent_tool.WikipediaTool(),
+            agent_tool.ArxivTool(),
+            agent_tool.TavilySearchTool()
         ],
         prompt=prompt.RESEARCH.format(
             history_messages=state["history_messages"]),
@@ -277,12 +354,13 @@ def generator_node(state: GraphState) -> Literal["verifier", "END"]:
         generator_prompt = prompt.GENERATOR_WITHOUT_FEEDBACK.format(
             history_messages=state["history_messages"])
 
-    agent_name = "generator"
     generator_agent = create_react_agent(
-        model=agent_utils.get_model(model_name=_model_name),
+        model=agent_utils.get_model(
+            model_name=_model_name,
+            temperature=settings["TEMPERATURE"]),
         tools=[],
         prompt=generator_prompt,
-        name=agent_name
+        name=agent_utils.AgentName.generator.name
     )
 
     # Add the original question to the conversation
@@ -305,7 +383,7 @@ def generator_node(state: GraphState) -> Literal["verifier", "END"]:
                 )
             ],
             "history_messages": history_messages,
-            "next_agent": agent_name,
+            "next_agent": agent_utils.AgentName.generator.name,
             "next_input": last_message,
             "answer_feedback": "",
             # When there is no answer feedback, store as draft response
@@ -333,7 +411,9 @@ def verifier_node(state: GraphState) -> Literal["generator"]:
             feedback.
     """
     verifier_agent = create_react_agent(
-        model=agent_utils.get_model(model_name=_model_name),
+        model=agent_utils.get_model(
+            model_name=_model_name,
+            temperature=settings["TEMPERATURE"]),
         tools=[],
         prompt=prompt.VERIFIER.format(
             answer=state["next_input"],

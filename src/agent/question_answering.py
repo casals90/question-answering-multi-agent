@@ -22,6 +22,7 @@ class QuestionAnsweringAgent:
         _graph: The computational graph used for processing questions and
             generating answers.
     """
+
     def __init__(self, graph_config: dict[str, Any]) -> None:
         """
         Initialize the QuestionAnsweringAgent with the given graph
@@ -86,7 +87,7 @@ class QuestionAnsweringAgent:
                 logger.info(f"Adding python code to messages.")
                 code = extract.read_file(file_path)
                 # Adding the file content to the query
-                query = f"{query}. Code: {code}"
+                query = f"{query}.\n### Code:\n{code}"
                 messages = [
                     {"role": "user",
                      "content": [
@@ -116,10 +117,19 @@ class QuestionAnsweringAgent:
                     transcription = extract.read_json_file(
                         transcription_file_path)
 
-                query = (f"{query}. Audio transcription: "
+                query = (f"{query}.\n### Audio transcription: "
                          f"{transcription['text'].strip()}")
                 messages = [{"role": "user",
                              "content": [{"type": "text", "text": query}]}]
+            elif file_path.endswith(".xlsx"):
+                logger.info(f"Adding excel filepath.")
+                query = f"{query}\n###File path:\n{file_path}"
+                messages = [
+                    {"role": "user",
+                     "content": [
+                         {"type": "text", "text": query}
+                     ]}
+                ]
             else:
                 raise ValueError(
                     f"File {gaia_question['filename']} "

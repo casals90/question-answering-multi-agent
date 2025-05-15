@@ -15,12 +15,14 @@ class AgentName(enum.Enum):
     - router: determines which agent should handle the query initially
     - researcher: gathers information from external sources
     - reasoner: analyzes information and formulates logical conclusions
+    - data_analyst: analyzes the data source like excel, csc files
     - generator: produces draft and final answers
     - verifier: validates the generated answers for accuracy and completeness
     """
     router = "router"
     researcher = "researcher"
     reasoner = "reasoner"
+    data_analyst = "data_analyst"
     generator = "generator"
     verifier = "verifier"
 

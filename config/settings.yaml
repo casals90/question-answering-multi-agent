@@ -13,6 +13,11 @@ volumes:
   raw: /data/raw/
   reports: /reports/
 
-MODEL_NAME: "google"
+MODEL_NAME: "openai"
+TEMPERATURE: 1
 GOOGLE_MODEL_ID: "gemini-2.5-flash-preview-04-17"
-OPENAI_MODEL_ID: "gpt-4o-2024-08-06"
+OPENAI_MODEL_ID: "o4-mini-2025-04-16"
+
+# "gpt-4.1-mini-2025-04-14"
+
+# "o4-mini-2025-04-16"
