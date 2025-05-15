@@ -47,7 +47,30 @@ def save_json_file(
         raise IOError(f"Error writing JSON to file: {e}")
 
 
-def submit_answers(answers: list[dict[str, str]]) -> str:
+def submit_answers(answers: list[dict[str, str]]) -> dict[str, Any]:
+    """
+    Submit answers to the Hugging Face scoring service for evaluation.
+
+    This function sends the user's answers to a remote scoring endpoint
+    along with authentication credentials. The answers are submitted as a JSON
+    payload containing the username, agent code, and the answer data.
+
+    Args:
+        answers (List[Dict[str, str]]): A list of dictionaries where each
+            dictionary represents an answer submission. The expected structure
+            of each dictionary depends on the specific requirements of the
+            scoring service, but typically includes question identifiers and
+            corresponding responses.
+
+    Returns:
+        dict[str, Any]: The response from the scoring service, which
+            includes score information.
+
+    Note:
+        This function requires the following environment variables to be set:
+        - HF_USERNAME: Your Hugging Face username for authentication
+        - HF_AGENT_CODE: Your unique agent code for the course/assignment
+    """
     submit_data = {
         "username": os.environ["HF_USERNAME"],
         "agent_code": os.environ["HF_AGENT_CODE"],
@@ -56,4 +79,4 @@ def submit_answers(answers: list[dict[str, str]]) -> str:
     hf_url_submit = "https://agents-course-unit4-scoring.hf.space/submit"
     response = requests.post(hf_url_submit, data=json.dumps(submit_data))
 
-    return response.text
+    return response.json()

@@ -13,7 +13,7 @@ def get_questions(output_path: str) -> list[dict[str, Any]]:
     Downloads all questions from the API and optionally downloads associated
         files.
 
-    Parameters:
+    Args:
     - output_path (str, optional): If provided, files associated with questions
         will be downloaded to this path
 
@@ -21,9 +21,7 @@ def get_questions(output_path: str) -> list[dict[str, Any]]:
     - list: A list of question dictionaries, or empty list if the request
         failed
     """
-    # Define API URL
-    base_url = "https://agents-course-unit4-scoring.hf.space"
-    url_questions = f"{base_url}/questions"
+    url_questions = os.environ["HF_QUESTIONS_URL"]
 
     try:
         # Send a GET request to fetch the questions
@@ -66,7 +64,7 @@ def get_question_file(
     Downloads a file based on the question dictionary and saves it to
     the output_path.
 
-    Parameters:
+    Args:
     - question (dict): A dictionary containing task_id, question, level,
         and file_name
     - output_path (str): The path where the file should be saved
@@ -84,9 +82,7 @@ def get_question_file(
         logger.info(f"No file_name found for task {task_id}")
         return ""
 
-    # Define API URLs
-    base_url = "https://agents-course-unit4-scoring.hf.space"
-    url_files = f"{base_url}/files/{task_id}"
+    url_files = os.environ["HF_FILES_URL"].format(task_id=task_id)
 
     # Define the full path for saving the file
     task_dir = os.path.join(output_path, str(task_id))
@@ -123,11 +119,11 @@ def read_file(file_path: str) -> str:
     """
     Read a  file and return its content.
 
-    Parameters:
-        file_path (str):
+    Args:
+        file_path (str): the file path od the file.
 
     Returns:
-        str:
+        str: the file's content.
     """
     with open(file_path, "r") as f:
         return f.read()

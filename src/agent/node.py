@@ -1,6 +1,3 @@
-import os
-from enum import Enum
-
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import END
 from langgraph.graph.message import add_messages
@@ -212,9 +209,9 @@ def researcher_node(state: GraphState) -> Literal["reasoner"]:
     research_agent = create_react_agent(
         model=agent_utils.get_model(model_name=_model_name),
         tools=[
-            tool.tavily_search_tool,
-            tool.arxiv_tool,
-            tool.wikipedia_tool
+            tool.WikipediaTool(),
+            tool.ArxivTool(),
+            tool.TavilySearchTool()
         ],
         prompt=prompt.RESEARCH.format(
             history_messages=state["history_messages"]),
