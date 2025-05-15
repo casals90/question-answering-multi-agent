@@ -1,7 +1,6 @@
 # Run / Stop docker container.
 deploy_jupyter:
-	docker build -f Dockerfile -t jupyter_environment .
-	docker compose -f docker-compose.yml up
+	docker compose -f docker-compose.yml up --build
 
 jupyter_up:
 	docker compose -f docker-compose.yml up

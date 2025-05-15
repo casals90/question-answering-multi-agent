@@ -61,7 +61,7 @@ reads the environment variables from this file.
 From the root of the project do the following:
 
 ```commandline
-docker build -t jupyter_environment ./
+docker build -t question-answering-jupyter ./
 ```
 
 ### Check the volumes

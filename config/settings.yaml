@@ -1,5 +1,3 @@
-# Configurations
-
 logging:
   formatter:
     format: '%(asctime)s - %(message)s'
@@ -14,3 +12,7 @@ volumes:
   processed: /data/processed/
   raw: /data/raw/
   reports: /reports/
+
+MODEL_NAME: "google"
+GOOGLE_MODEL_ID: "gemini-2.5-flash-preview-04-17"
+OPENAI_MODEL_ID: "gpt-4o-2024-08-06"

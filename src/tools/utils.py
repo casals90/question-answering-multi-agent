@@ -1,120 +1,73 @@
-import importlib
-from datetime import timedelta
-from typing import List
-
-from src.tools.startup import logger
+import base64
+from pathlib import Path
 
 
-def read_file(file_path: str, **kwargs) -> str:
+def image_to_base64(
+        image_path: str | Path, include_mime_prefix: bool = True,
+        return_mime_type: bool = False) -> str | tuple[str, str]:
     """
-    Given a file path, this function reads the content and returns it as a
-    string.
+    Convert an image file to base64 encoded string.
 
-    Args:
-        file_path (str): file path to read.
-        **kwargs: additional parameters for open function.
+    Parameters:
+    -----------
+    image_path : str or Path
+        Path to the image file
+    include_mime_prefix : bool, default=True
+        If True, includes the data URI scheme
+        prefix (e.g., "data:image/png;base64,")
+    return_mime_type : bool, default=False
+        If True, also returns the detected MIME type as a second return value
 
     Returns:
-        (str): the content of the file.
+    --------
+    str or Tuple[str, str]
+        Base64 encoded string (with optional MIME prefix)
+        If return_mime_type is True, returns a tuple of
+        (base64_string, mime_type)
+
+    Raises:
+    -------
+    FileNotFoundError
+        If the image file doesn't exist
+    ValueError
+        If the file extension is not supported
     """
-    try:
-        with open(file_path, **kwargs) as file:
-            content = file.read()
-    except FileNotFoundError:
-        logger.warning(f'File {file_path} does not exists.')
-        content = ''
+    # Convert to Path object for easier manipulation
+    path = Path(image_path)
 
-    return content
+    # Check if file exists
+    if not path.exists():
+        raise FileNotFoundError(f"Image file not found: {image_path}")
 
+    # Get file extension and determine MIME type
+    extension = path.suffix.lower()
+    mime_mapping = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.bmp': 'image/bmp',
+        '.webp': 'image/webp',
+        '.svg': 'image/svg+xml',
+        '.tiff': 'image/tiff',
+        '.tif': 'image/tiff',
+        '.ico': 'image/x-icon'
+    }
 
-def compute_columns_correlation_with_target(
-        df: pd.DataFrame, columns: List[str],
-        target_column: str, corr_method: callable) -> pd.DataFrame:
-    """
-    Given a pd.DataFrame, a list of columns and a target column,
-    this function computes the correlation between columns and target.
+    mime_type = mime_mapping.get(extension)
+    if mime_type is None:
+        raise ValueError(f"Unsupported image format: {extension}")
 
-    Args:
-        df (pd.DataFrame): a pd.DataFrame to compute correlation.
-        columns (ct.StrList): a list of columns to compute correlation with
-            the target.
-        target_column (str): target's column name.
-        corr_method (Callable): correlation method to apply.
+    # Read the binary data and encode as base64
+    with open(path, 'rb') as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
 
-    Returns:
-        (pd.DataFrame): a pd.DataFrame with correlations values between
-        columns and target.
-    """
-    correlation_values = []
-    for col in columns:
-        try:
-            corr = corr_method(df[col], df[target_column])
-            correlation_values.append(
-                {'column': col, 'target': target_column, 'value': corr})
-        except TypeError as _:
-            logger.warning(f'Error when compute the correlation between '
-                           f'{col} and {target_column}')
+    # Add MIME prefix if requested
+    if include_mime_prefix:
+        encoded_string = f"data:{mime_type};base64,{encoded_string}"
 
-    corr_df = pd.DataFrame(correlation_values) \
-        .pivot(values='value', index='column', columns='target') \
-        .dropna()
-
-    corr_df.columns = ['correlation']
-    corr_df.sort_values(by='correlation', ascending=False, inplace=True)
-
-    return corr_df
-
-
-def get_string_chunks(string: str, length: int) -> List[str]:
-    """
-    Given a string and a length, it splits the string into chunks of length.
-
-    Args:
-        string (str): The string to split.
-        length (int): The length of each chunk.
-
-    Returns:
-        (List[str]): A list of string chunks.
-    """
-    return list(
-        (string[0 + i:length + i] for i in range(0, len(string), length)))
-
-
-def import_library(module: str, params: dict = None) -> callable:
-    """
-    Given a module name and dict params, this function imports the module and
-    creates a new callable with specific parameters.
-
-    Args:
-        module (str): module name.
-        params (str): dict that contains params.
-
-    Returns:
-        callable of imported module with parameters.
-    """
-    library = '.'.join(module.split('.')[:-1])
-    imported_module = importlib.import_module(library)
-    name = module.split('.')[-1]
-
-    if params is None:
-        params = dict()
-
-    return getattr(imported_module, name)(**params)
-
-
-def format_time(elapsed) -> str:
-    """
-    Takes a time in seconds and returns a string hh:mm:ss
-
-    Args:
-        elapsed:
-
-    Returns:
-        (str): A string with the time in 'hh:mm:ss' format.
-    """
-
-    # Round to the nearest second.
-    elapsed_rounded = int(round((elapsed)))
-
-    # Format as hh:mm:ss
-    return str(timedelta(seconds=elapsed_rounded))
+    # Return the result
+    if return_mime_type:
+        return encoded_string, mime_type
+    else:
+        return encoded_string
