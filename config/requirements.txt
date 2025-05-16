@@ -19,3 +19,4 @@ tavily-python==0.7.1
 transformers==4.51.3
 typing-extensions==4.13.2
 wikipedia==1.4.0
+yt-dlp==2025.4.30

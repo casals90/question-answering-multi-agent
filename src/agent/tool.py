@@ -1,10 +1,13 @@
 import os
+import tempfile
 
 import wikipedia
 from langchain_community.tools.arxiv.tool import ArxivQueryRun
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.tools import BaseTool
 from langchain_experimental.utilities import PythonREPL
+
+from src.tools import audio
 from src.tools.startup import logger
 
 
@@ -123,3 +126,50 @@ class PythonReplTool(BaseTool):
             str: The execution results or error message.
         """
         return self._run(code)
+
+
+class GetYoutubeUrlTranscription(BaseTool):
+    """
+    Tool that downloads audio from a YouTube video and transcribes it.
+    """
+    name: str = "youtube_transcription"
+    description: str = \
+        "Given a YouTube URL, download the audio and transcribe it to text."
+
+    def _run(self, url: str) -> str:
+        """
+        Download audio from YouTube URL and transcribe it.
+
+        Args:
+            url (str): YouTube video URL
+
+        Returns:
+            str: The transcription of the video's audio
+        """
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Download the audio from the YouTube URL
+                file_path = audio.download_youtube_audio(
+                    url, output_folder=temp_dir)
+
+                # Verify the file exists
+                if not os.path.exists(file_path):
+                    return f"Error: Failed to download audio from {url}"
+
+                # Transcribe the audio file
+                transcription = audio.transcribe_audio_file(file_path)
+
+                # Return the transcription text
+                if isinstance(transcription, dict) and "text" in transcription:
+                    return transcription["text"]
+                else:
+                    return str(transcription)
+
+        except Exception as e:
+            return (f"An error occurred while processing "
+                    f"the YouTube URL: {str(e)}")
+
+    async def _arun(self, url: str) -> str:
+        """Async implementation of the tool."""
+        # For most tools, we can just call the synchronous version
+        return self._run(url)

@@ -1,4 +1,8 @@
 import base64
+import random
+import string
+import time
+import uuid
 from pathlib import Path
 
 
@@ -71,3 +75,50 @@ def image_to_base64(
         return encoded_string, mime_type
     else:
         return encoded_string
+
+
+def generate_unique_id(
+        prefix: str = "",
+        length: int = 8,
+        include_timestamp: bool = True
+) -> str:
+    """
+    Generate a unique identifier.
+
+    Args:
+        prefix (str): Optional string to prefix the ID with
+        length (int): Length of the random portion of the ID (default: 8)
+        include_timestamp (bool): Whether to include timestamp
+            in the ID (default: True)
+
+    Returns:
+        str: A unique ID string
+    """
+
+    # Start with the prefix if provided
+    unique_id = prefix
+
+    # Add timestamp if requested
+    if include_timestamp:
+        unique_id += str(int(time.time())) + "_"
+
+    # Generate random string of specified length
+    if length > 0:
+        # Use uuid4 for the first part (which is already random)
+        random_part = str(uuid.uuid4()).replace("-", "")
+
+        # If we need more characters than uuid4 provides, add random
+        # alphanumeric chars
+        if length > 32:
+            extra_chars = ''.join(random.choices(
+                string.ascii_letters + string.digits,
+                k=length - 32
+            ))
+            random_part += extra_chars
+
+        # Trim if requested length is less than what uuid4 provides
+        random_part = random_part[:length]
+
+        unique_id += random_part
+
+    return unique_id

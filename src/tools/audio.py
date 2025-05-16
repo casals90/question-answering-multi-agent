@@ -1,10 +1,13 @@
 import os
-import whisper
-
 from pathlib import Path
+from typing import Any
+
+import whisper
+import yt_dlp
+
 from src.data import load
 from src.tools.startup import logger
-from typing import Any
+from src.tools import utils as tools_utils
 
 
 def transcribe_audio_file(
@@ -71,3 +74,63 @@ def transcribe_audio_file(
     except Exception as e:
         logger.error(f"Error during transcription: {e}")
         raise RuntimeError(f"Transcription failed: {e}")
+
+
+def download_youtube_audio(
+        url: str,
+        output_folder: str,
+        audio_format: str = 'mp3',
+        audio_quality: str = '192',
+        verbose: bool = True
+) -> str:
+    """
+    Download audio from a YouTube video.
+
+    Args:
+        url (str): URL of the YouTube video to download audio from
+        audio_format (str): Desired audio format (e.g., 'mp3', 'm4a', 'wav'),
+            defaults to 'mp3'
+        audio_quality (str): Audio quality in kbps (e.g., '128', '192', '320'),
+            defaults to '192'
+        output_folder (str): Folder path where the audio file will be saved,
+            defaults to None (current directory)
+        verbose (bool): Whether to show download progress, defaults to True
+
+    Returns:
+        str: The file path of the downloaded audio file
+    """
+
+    # Create output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
+    unique_id = tools_utils.generate_unique_id()
+    file_path = os.path.join(output_folder, f"{unique_id}")
+
+    # Options for yt_dlp
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': audio_format,
+            'preferredquality': audio_quality,
+        }],
+        'outtmpl': file_path,
+        'quiet': not verbose,
+        # Extract info before downloading
+        'noplaylist': True,
+    }
+
+    # Get video info first to determine output file path
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=False)
+            # Download the video
+            ydl.download([url])
+
+        # Adding mp3 extension
+        file_path = f"{file_path}.mp3"
+        logger.info(f"Download completed. Audio saved to: {file_path}")
+    except Exception as e:
+        logger.error(f"Error downloading audio: {e}")
+        file_path = None
+
+    return file_path

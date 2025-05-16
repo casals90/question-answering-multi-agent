@@ -288,7 +288,8 @@ def researcher_node(state: GraphState) -> Literal["reasoner"]:
         tools=[
             agent_tool.WikipediaTool(),
             agent_tool.ArxivTool(),
-            agent_tool.TavilySearchTool()
+            agent_tool.TavilySearchTool(),
+            agent_tool.GetYoutubeUrlTranscription()
         ],
         prompt=prompt.RESEARCH.format(
             history_messages=state["history_messages"]),

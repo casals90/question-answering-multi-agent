@@ -14,6 +14,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY config/requirements.txt /app/config/requirements.txt
+COPY config/settings.yaml /config/settings.yaml
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools && \
@@ -24,9 +25,6 @@ RUN pip install --upgrade pip setuptools && \
 RUN mkdir -p /home/jovyan/.cache/huggingface && \
     chown -R jovyan:users /home/jovyan/.cache && \
     chmod -R 775 /home/jovyan/.cache
-
-
-COPY config/settings.yaml /config/settings.yaml
 
 # Switch back to jovyan user
 USER jovyan
