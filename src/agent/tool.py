@@ -2,13 +2,15 @@ import os
 import tempfile
 
 import wikipedia
+from google import genai
+from google.genai import types
+from langchain.tools import BaseTool
 from langchain_community.tools.arxiv.tool import ArxivQueryRun
 from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_core.tools import BaseTool
 from langchain_experimental.utilities import PythonREPL
 
 from src.tools import audio
-from src.tools.startup import logger
+from src.tools.startup import logger, settings
 
 
 class WikipediaTool(BaseTool):
@@ -173,3 +175,66 @@ class GetYoutubeUrlTranscription(BaseTool):
         """Async implementation of the tool."""
         # For most tools, we can just call the synchronous version
         return self._run(url)
+
+
+class YoutubeVideoQuery(BaseTool):
+    """
+    Tool that uses Google's Gemini model to analyze a YouTube video and answer
+    questions about it.
+    """
+    name: str = "youtube_query"
+    description: str = \
+        ("Given a YouTube URL and a question, analyze the video content using "
+         "Gemini and return the answer.")
+
+    def _run(self, input_dict: dict) -> str:
+        """
+        Analyze a YouTube video and answer a question about its visual content.
+
+        Args:
+            input_dict (dict): Dictionary containing 'url' (YouTube video URL)
+            and 'query' (question about the video)
+
+        Returns:
+            str: The answer to the query about the video content
+        """
+        try:
+            # Extract URL and query from the input dictionary
+            if not isinstance(input_dict, dict):
+                return ("Input must be a dictionary"
+                        " with 'url' and 'query' keys.")
+
+            url = input_dict.get('url')
+            query = input_dict.get('query')
+
+            if not url or not query:
+                return "Both 'url' and 'query' must be provided."
+
+            # Initialize the Gemini client
+            client = genai.Client()
+
+            # Create the request to Gemini
+            # 'models/gemini-2.0-flash'
+            response = client.models.generate_content(
+                model=f"models/{settings['GOOGLE_MODEL_ID']}",
+                contents=types.Content(
+                    parts=[
+                        types.Part(
+                            file_data=types.FileData(file_uri=url)
+                        ),
+                        types.Part(text=query)
+                    ]
+                )
+            )
+
+            # Return the response text
+            return response.text
+
+        except Exception as e:
+            return (f"An error occurred while analyzing "
+                    f"the YouTube video: {str(e)}")
+
+    async def _arun(self, input_dict: dict) -> str:
+        """Async implementation of the tool."""
+        # For most tools, we can just call the synchronous version
+        return self._run(input_dict)
