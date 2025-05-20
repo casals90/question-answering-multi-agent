@@ -12,29 +12,24 @@ def image_to_base64(
     """
     Convert an image file to base64 encoded string.
 
-    Parameters:
-    -----------
-    image_path : str or Path
-        Path to the image file
-    include_mime_prefix : bool, default=True
-        If True, includes the data URI scheme
-        prefix (e.g., "data:image/png;base64,")
-    return_mime_type : bool, default=False
-        If True, also returns the detected MIME type as a second return value
+    Args:
+
+        image_path (str or Path): Path to the image file
+        include_mime_prefix (bool): If True, includes the data URI scheme
+            prefix (e.g., "data:image/png;base64,"). Default it is True.
+        return_mime_type (bool): If True, also returns the detected MIME type
+            as a second return value. Default it is True.
 
     Returns:
-    --------
-    str or Tuple[str, str]
-        Base64 encoded string (with optional MIME prefix)
-        If return_mime_type is True, returns a tuple of
-        (base64_string, mime_type)
+        (str or Tuple[str, str]): Base64 encoded string (with optional MIME
+        prefix) If return_mime_type is True, returns a tuple of
+        (base64_string, mime_type).
 
     Raises:
-    -------
-    FileNotFoundError
-        If the image file doesn't exist
-    ValueError
-        If the file extension is not supported
+        FileNotFoundError
+            If the image file doesn't exist
+        ValueError
+            If the file extension is not supported
     """
     # Convert to Path object for easier manipulation
     path = Path(image_path)

@@ -3,28 +3,9 @@ from typing import Any
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 from src.tools.startup import logger, settings
-
-
-class AgentName(enum.Enum):
-    """
-    Enumeration of agent types available in the system.
-
-    Each agent has a specific role in the collaborative reasoning pipeline:
-    - router: determines which agent should handle the query initially
-    - researcher: gathers information from external sources
-    - reasoner: analyzes information and formulates logical conclusions
-    - data_analyst: analyzes the data source like excel, csc files
-    - generator: produces draft and final answers
-    - verifier: validates the generated answers for accuracy and completeness
-    """
-    router = "router"
-    researcher = "researcher"
-    reasoner = "reasoner"
-    data_analyst = "data_analyst"
-    generator = "generator"
-    verifier = "verifier"
 
 
 class ModelName(enum.Enum):
@@ -200,3 +181,29 @@ def get_model(
         raise ValueError(f"The {model_name} is not valid.")
 
     return chat_model
+
+
+def create_router(agents: list[str]) -> type[BaseModel]:
+    """
+    Creates a Pydantic model for validating routing decisions.
+
+    This function dynamically generates a Pydantic model class that
+    enforces validation rules for routing between agents. The expert_agent
+    field can only contain values from the provided options list.
+
+    Args:
+        agents (list[str]): List of valid agent names for routing.
+
+    Returns:
+        type[BaseModel]: A Pydantic model class with next_agent
+            field validation.
+    """
+
+    class Router(BaseModel):
+        expert_agent: str = Field(
+            description="The expert agent to route", enum=agents)
+        agent_input: str = Field(
+            description="The input of expert agent"
+        )
+
+    return Router

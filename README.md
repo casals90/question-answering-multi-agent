@@ -1,6 +1,10 @@
 ## Project
+TODO
 
-A short description of the project.
+<div align="center">
+  <img src="notebooks/images/multi_agents_graph.png" alt="Multi-Agent Pipeline Graph"/>
+  <p><em>Figure 1: Multi-Agent Pipeline Graph showing different processing routes</em></p>
+</div>
 
 Project Organization
 ------------
@@ -12,56 +16,41 @@ Project Organization
     │   ├── settings.yaml     
     ├── data
     │   ├── external         
-    │   ├── interim           
-    │   ├── logs           
-    │   ├── models           
+    │   ├── interim
     │   ├── processed        
-    │   └── raw              
-    │
-    ├── docs
-    │
+    │   └── raw
     ├── notebooks
-    │
-    ├── reports               
-    │   └── figures
+    │   ├── answer-gaia-questions.ipynb        
+    │   └── answer-simple-question.ipynb
+    │   └── images
+    │      └── multi_agents_graph.png
     ├── src
-    │   ├── data
-    │   │
-    │   ├── models
-    │   │
-    │   └── tools  
-    │       └── startup.py
-    │       └── utils.py
-    │   │
-    │   └── visualization     
-    │       └── plot_data.py
+    │   └── agent  
+    │      └── prompt.py
+    │      └── question_answering.py
+    │      └── tool.py
+    │      └── utils.py
+    │      └── workflow.py
+    │   └── data
+    │      └── extract.py
+    │      └── load.py
+    │   └── tools 
+    │      └── audio.py
+    │      └── startup.py
+    │      └── utils.py
 
 --------
 
 How to run the code
 ------------
 
-### Dataset
-
-The input dataset has to be in 'data/raw'.
-
 ### Create environment file
 
-The command to generate the environment file (.env) is the following:
+Rename the '.env.demo' as '.env' and fill in.
 
+This command shows the user ID and group ID. 
 ```commandline
-printf "UID=$(id -u)\nGID=$(id -g)\n" > .env 
-```
-
-This command writes the user ID and group ID to a file. By default, Docker
-reads the environment variables from this file.
-
-### Docker image
-
-From the root of the project do the following:
-
-```commandline
-docker build -t question-answering-jupyter ./
+printf "UID=$(id -u)\nGID=$(id -g)\n"
 ```
 
 ### Check the volumes
@@ -83,20 +72,6 @@ Should the above locations be inconvenient, feel free to change
 the 'docker-compose.yml' file to change them.
 E.g. /myownpath/some_raw_data:/data/raw
 
-### Start/shutdown the system
-
-When ready, start the system from the root folder as follows:
-
-```commandline
-docker compose up
-```
-
-Shutdown the system as follows:
-
-```commandline
-docker compose down
-```
-
 ### Utility to start/shutdown the system
 
 To facilitate system startup and shutdown, there is a script available.
@@ -108,3 +83,11 @@ make deploy_jupyter
 
 This command initiates the Jupyterlab environment and displays the logs in
 the command line. To shut down the system, press "CTRL + C".
+
+Shutdown the system as follows:
+
+```commandline
+make jupyter_down
+```
+
+

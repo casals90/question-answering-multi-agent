@@ -3,7 +3,7 @@ from typing import Any
 
 from langchain_core.messages import AIMessage
 
-from src.agent import node, workflow
+from src.agent import workflow
 from src.data import extract
 from src.tools import audio, utils as tools_utils
 from src.tools.startup import logger
@@ -33,26 +33,8 @@ class QuestionAnsweringAgent:
                 graph workflow.
         """
         self._graph_config = graph_config
-        self._graph = workflow.build_graph()
-
-    def __str__(self) -> str:
-        """
-        Return a string representation of the QuestionAnsweringAgent.
-
-        Returns:
-            str: The name of the agent.
-        """
-        return "QuestionAnsweringAgent"
-
-    def __repr__(self) -> str:
-        """
-        Return the official string representation of the
-        QuestionAnsweringAgent.
-
-        Returns:
-            str: The string representation from __str__.
-        """
-        return self.__str__()
+        # Create the compiled graph
+        self._graph = workflow.QuestionAnsweringGraph().build()
 
     @staticmethod
     def _pre_process_gaia_question(
@@ -157,7 +139,7 @@ class QuestionAnsweringAgent:
                 processing failed.
         """
         # Initialize the GraphState
-        state = node.GraphState(
+        state = workflow.GraphState(
             question=question,
             messages=messages,
             history_messages="",
