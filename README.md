@@ -1,8 +1,8 @@
-# Multi-Agent Question Answering System using Reflex
+# Multi-Agent Question Answering System
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-This repository implements a **Multi-Agent Question Answering System (QAMAS)** using the **Reflex framework**, an event-driven architecture for orchestrating specialized agents to collaboratively solve complex natural language questions.  
+This repository implements a **Multi-Agent Question Answering System (QAMAS)**, an event-driven architecture for orchestrating specialized agents to collaboratively solve complex natural language questions.  
 
 The system was built for both **general-purpose question answering** and for the **GAIA Hands-on Challenge** from the [Hugging Face Agents Course – Unit 4](https://huggingface.co/learn/agents-course/unit4/hands-on).
 
@@ -10,13 +10,13 @@ The system was built for both **general-purpose question answering** and for the
 
 ## 🧠 Overview
 
-Reflex enables modular, reactive agents to operate asynchronously and communicate in dynamic pipelines. In this project, agents are specialized for reasoning, data analysis, research, generation, and verification. The system routes each question through a customized pipeline, depending on its type.
+Reflexion enables modular, reactive agents to operate asynchronously and communicate in dynamic pipelines. In this project, agents are specialized for reasoning, data analysis, research, generation, and verification. The system routes each question through a customized pipeline, depending on its type.
 
 ---
 
 ## ✨ Features
 
-- ✅ Modular agent design using Reflex
+- ✅ Modular agent design
 - ✅ Dynamic routing based on question type
 - ✅ Factual, logical, and data-driven question answering
 - ✅ End-to-end pipeline with answer verification
@@ -27,7 +27,7 @@ Reflex enables modular, reactive agents to operate asynchronously and communicat
 
 ## 📐 System Architecture
 
-Each query is handled by one of the following Reflex agent pipelines:
+Each query is handled by one of the following agent pipelines:
 
 ### Agent Roles
 
