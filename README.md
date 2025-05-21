@@ -171,10 +171,9 @@ printf "UID=$(id -u)\nGID=$(id -g)\n"
 ### 3. Check Docker Volumes
 ```bash
 volumes:
-  - ./data/models:/data/models
+  - ./data/models:/data/interim
   - ./data/processed:/data/processed
   - ./data/raw:/data/raw
-  - ./reports:/reports
 ```
 
 Customize them in ```docker-compose.yml``` if needed.

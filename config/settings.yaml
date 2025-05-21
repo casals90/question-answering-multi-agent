@@ -14,11 +14,6 @@ volumes:
   reports: /reports/
 
 MODEL_NAME: "google"
-TEMPERATURE: 1
+TEMPERATURE: 0
 GOOGLE_MODEL_ID: "gemini-2.0-flash"
-OPENAI_MODEL_ID: "o4-mini-2025-04-16"
-
-# "gemini-2.5-flash-preview-04-17"
-# "o4-mini-2025-04-16"
-
-# gpt-4.1-nano-2025-04-14
+OPENAI_MODEL_ID: "gpt-4.1-nano-2025-04-14"
