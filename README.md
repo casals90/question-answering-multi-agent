@@ -120,11 +120,6 @@ cp .env.demo .env
 
 Below is a description of each variable:
 
-Copy the example .env file and fill in required values:
-```bash
-cp .env.demo .env
-```
-
 You can retrieve your UID and GID with:
 ```bash
 printf "UID=$(id -u)\nGID=$(id -g)\n"
@@ -166,7 +161,7 @@ printf "UID=$(id -u)\nGID=$(id -g)\n"
 | `HF_AGENT_CODE` | Code used for submitting answers in the GAIA challenge     |
 | `HF_USERNAME`   | Your Hugging Face username (used for challenge submission) |
 
-> 💡 Make sure not to commit your ```.env``` file to version control. Add it to your ```.gitignore``` for security:
+> 💡 Make sure not to commit your ```.env``` file to version control (it is added to ```.gitignore``` for security).
 
 ### 3. Check Docker Volumes
 ```bash
